@@ -1,24 +1,31 @@
 {
   "expo": {
-    "name": "planea",
-    "slug": "planea",
+    "name": "Tardeo",
+    "slug": "tardeo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "ios": {
-      "supportsTablet": true
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF7F0"
     },
     "android": {
+      "package": "com.joaquinluisgarcia.tardeo",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#C2410C"
       }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "ios": {
+      "bundleIdentifier": "com.joaquinluisgarcia.tardeo"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ea9c2347-60d8-43ea-acfa-9a0ca29c73c8"
+      }
     }
   }
 }

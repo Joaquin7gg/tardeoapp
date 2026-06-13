@@ -10,9 +10,11 @@ import {
   StatusBar,
   Share,
   Linking,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { generarPlanIA } from './ia';
-import { obtenerCiudad } from './ubicacion';
+import { obtenerCiudad, buscarCiudades } from './ubicacion';
 import { obtenerClima } from './clima';
 import { obtenerLugares } from './lugares';
 import { obtenerFavoritos, guardarFavorito, eliminarFavorito } from './favoritos';
@@ -23,16 +25,15 @@ const COMPANIAS = ['Solo/a', 'En pareja', 'Con amigos', 'En familia'];
 const ANIMOS = ['Tranquilo', 'Aire libre', 'Deporte', 'Cultural', 'Gastronómico', 'Fiesta'];
 
 const VERSION_APP = '1.0.0';
-const EMAIL_CONTACTO = 'contacto.planazo@gmail.com'; // <- cambia esto por tu email real
+const EMAIL_CONTACTO = 'contacto.tardeo@gmail.com'; //
 
-// ---- Paleta "Mediterráneo claro" ----
 const COLORES = {
-  fondo: '#FAF7F0', // crema cálido
+  fondo: '#FAF7F0',
   tarjeta: '#FFFFFF',
   borde: '#E5DFD0',
   textoPrincipal: '#292524',
   textoSecundario: '#78716C',
-  acento: '#C2410C', // terracota
+  acento: '#C2410C',
   acentoSuave: '#FBEAE2',
   verdeSuave: '#DCFCE7',
   verdeTexto: '#166534',
@@ -59,33 +60,86 @@ export default function App() {
   const [plan, setPlan] = useState(null);
 
   const [ciudad, setCiudad] = useState(null);
+  const [pais, setPais] = useState(null);
   const [ciudadDetectada, setCiudadDetectada] = useState(false);
+  const [ciudadManual, setCiudadManual] = useState(false);
   const [clima, setClima] = useState(null);
   const [lugares, setLugares] = useState([]);
+
+  // Modal de cambio de ciudad
+  const [modalCiudadVisible, setModalCiudadVisible] = useState(false);
+  const [textoCiudad, setTextoCiudad] = useState('');
+  const [resultadosCiudades, setResultadosCiudades] = useState([]);
+  const [buscandoCiudades, setBuscandoCiudades] = useState(false);
+  const [busquedaHecha, setBusquedaHecha] = useState(false);
 
   const [favoritos, setFavoritos] = useState([]);
   const [mostrandoFavoritos, setMostrandoFavoritos] = useState(false);
   const [mostrandoAcercaDe, setMostrandoAcercaDe] = useState(false);
   const [planGuardado, setPlanGuardado] = useState(false);
 
+  const cargarDatosZona = async (latitud, longitud) => {
+    const [tiempoActual, lugaresCercanos] = await Promise.all([
+      obtenerClima({ latitud, longitud }),
+      obtenerLugares({ latitud, longitud }),
+    ]);
+    setClima(tiempoActual);
+    setLugares(lugaresCercanos);
+  };
+
+  const usarMiUbicacion = async () => {
+    setClima(null);
+    setLugares([]);
+    const ubicacion = await obtenerCiudad();
+    setCiudad(ubicacion.ciudad);
+    setPais(ubicacion.pais);
+    setCiudadDetectada(ubicacion.detectada);
+    setCiudadManual(false);
+    await cargarDatosZona(ubicacion.latitud, ubicacion.longitud);
+  };
+
   useEffect(() => {
     async function iniciar() {
       const guardados = await obtenerFavoritos();
       setFavoritos(guardados);
-
-      const ubicacion = await obtenerCiudad();
-      setCiudad(ubicacion.ciudad);
-      setCiudadDetectada(ubicacion.detectada);
-
-      const [tiempoActual, lugaresCercanos] = await Promise.all([
-        obtenerClima({ latitud: ubicacion.latitud, longitud: ubicacion.longitud }),
-        obtenerLugares({ latitud: ubicacion.latitud, longitud: ubicacion.longitud }),
-      ]);
-      setClima(tiempoActual);
-      setLugares(lugaresCercanos);
+      await usarMiUbicacion();
     }
     iniciar();
   }, []);
+
+  // Busca ciudades que coincidan con el texto y muestra las opciones
+  const buscarOpcionesCiudad = async () => {
+    if (textoCiudad.trim().length < 2) return;
+    setBuscandoCiudades(true);
+    const resultados = await buscarCiudades(textoCiudad);
+    setResultadosCiudades(resultados);
+    setBusquedaHecha(true);
+    setBuscandoCiudades(false);
+  };
+
+  // El usuario elige una de las opciones de la lista
+  const seleccionarCiudad = async (opcion) => {
+    setCiudad(opcion.ciudad);
+    setPais(opcion.pais);
+    setCiudadManual(true);
+    setCiudadDetectada(false);
+    cerrarModalCiudad();
+    setClima(null);
+    setLugares([]);
+    await cargarDatosZona(opcion.latitud, opcion.longitud);
+  };
+
+  const volverAMiUbicacion = async () => {
+    cerrarModalCiudad();
+    await usarMiUbicacion();
+  };
+
+  const cerrarModalCiudad = () => {
+    setModalCiudadVisible(false);
+    setTextoCiudad('');
+    setResultadosCiudades([]);
+    setBusquedaHecha(false);
+  };
 
   const todoSeleccionado = tiempo && presupuesto && compania && animo && ciudad;
 
@@ -98,6 +152,7 @@ export default function App() {
         compania,
         animo,
         ciudad,
+        pais,
         clima,
         lugares,
       });
@@ -126,11 +181,11 @@ export default function App() {
       .join('\n');
 
     // TODO: cuando la app esté publicada, añadir al final:
-    // `\n📲 Descárgala gratis: https://play.google.com/store/apps/details?id=TU_ID`
+    // `\n📲 Descárgala gratis: https://play.google.com/store/apps/details?id=com.joaquinluisgarcia.tardeo`
     const mensaje =
       `🎯 ${plan.titulo}\n📍 ${ciudad}\n\n${lineas}\n\n` +
       `💰 Total aproximado: ${plan.costeTotal}\n\n` +
-      `✨ Creado con Planea — Tu plan perfecto en segundos`;
+      `✨ Creado con Tardeo — Tu plan perfecto en segundos`;
 
     try {
       await Share.share({ message: mensaje });
@@ -141,7 +196,7 @@ export default function App() {
 
   const contactar = () => {
     Linking.openURL(
-      `mailto:${EMAIL_CONTACTO}?subject=Contacto desde Planea v${VERSION_APP}`
+      `mailto:${EMAIL_CONTACTO}?subject=Contacto desde Tardeo v${VERSION_APP}`
     );
   };
 
@@ -177,12 +232,12 @@ export default function App() {
       <View style={styles.fondo}>
         <StatusBar barStyle="dark-content" />
         <ScrollView contentContainerStyle={styles.contenido}>
-          <Text style={styles.titulo}>Acerca de Planea</Text>
+          <Text style={styles.titulo}>Acerca de Tardeo</Text>
           <Text style={styles.subtitulo}>Versión {VERSION_APP}</Text>
 
           <View style={styles.tarjetaAcercaDe}>
             <Text style={styles.textoAcercaDe}>
-              Planea crea planes de ocio reales y a tu medida en segundos:
+              Tardeo crea planes de ocio reales y a tu medida en segundos:
               dinos cuánto tiempo tienes, tu presupuesto, con quién vas y qué
               te apetece, y te montamos un plan con sitios verificados de tu
               zona, teniendo en cuenta hasta el tiempo que hace.
@@ -203,7 +258,7 @@ export default function App() {
           </TouchableOpacity>
 
           {/* TODO: al publicar, añadir aquí un botón con enlace a la
-              política de privacidad (obligatoria en Google Play) */}
+              política de privacidad */}
 
           <TouchableOpacity
             style={styles.botonSecundario}
@@ -308,7 +363,6 @@ export default function App() {
             <Text style={styles.valorTotal}>{plan.costeTotal}</Text>
           </View>
 
-          {/* Acciones secundarias: compactas, lado a lado */}
           <View style={styles.filaAcciones}>
             <TouchableOpacity
               style={[styles.botonAccion, planGuardado && styles.botonAccionOk]}
@@ -329,7 +383,6 @@ export default function App() {
             </TouchableOpacity>
           </View>
 
-          {/* Acción principal */}
           <TouchableOpacity
             style={styles.boton}
             onPress={generarPlan}
@@ -375,14 +428,19 @@ export default function App() {
           </View>
         </View>
 
-        <View style={styles.filaUbicacion}>
+        <TouchableOpacity
+          style={styles.filaUbicacion}
+          onPress={() => setModalCiudadVisible(true)}
+        >
           {ciudad === null ? (
             <Text style={styles.textoUbicacion}>📍 Detectando ubicación...</Text>
           ) : (
             <Text style={styles.textoUbicacion}>
               📍 {ciudad}
-              {ciudadDetectada ? '' : ' (por defecto)'}
+              {ciudadManual ? ' (elegida)' : ciudadDetectada ? '' : ' (por defecto)'}
               {clima ? `  ·  ${emojiClima(clima.descripcion)} ${clima.temperatura}°C` : ''}
+              {'  '}
+              <Text style={styles.textoCambiar}>cambiar ▾</Text>
             </Text>
           )}
           {lugares.length > 0 && (
@@ -390,7 +448,7 @@ export default function App() {
               ✓ {lugares.length} sitios reales detectados cerca
             </Text>
           )}
-        </View>
+        </TouchableOpacity>
 
         <Text style={styles.subtitulo}>
           Cuéntame tu situación y te monto un plan en segundos
@@ -440,6 +498,79 @@ export default function App() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* ---- Modal para cambiar de ciudad ---- */}
+      <Modal
+        visible={modalCiudadVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cerrarModalCiudad}
+      >
+        <View style={styles.modalFondo}>
+          <View style={styles.modalTarjeta}>
+            <Text style={styles.modalTitulo}>¿Dónde quieres el plan?</Text>
+            <Text style={styles.modalSubtitulo}>
+              Escribe una ciudad de cualquier parte del mundo y elige entre las opciones.
+            </Text>
+
+            <View style={styles.filaBusqueda}>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Ej: Córdoba, Lisboa, Roma..."
+                placeholderTextColor={COLORES.textoSecundario}
+                value={textoCiudad}
+                onChangeText={setTextoCiudad}
+                autoFocus={true}
+                returnKeyType="search"
+                onSubmitEditing={buscarOpcionesCiudad}
+              />
+              <TouchableOpacity
+                style={styles.botonBuscar}
+                onPress={buscarOpcionesCiudad}
+                disabled={buscandoCiudades}
+              >
+                {buscandoCiudades ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.botonBuscarTexto}>Buscar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Lista de resultados */}
+            <ScrollView style={styles.listaResultados}>
+              {resultadosCiudades.map((opcion, indice) => (
+                <TouchableOpacity
+                  key={indice}
+                  style={styles.filaResultado}
+                  onPress={() => seleccionarCiudad(opcion)}
+                >
+                  <Text style={styles.resultadoCiudad}>{opcion.ciudad}</Text>
+                  <Text style={styles.resultadoDetalle}>
+                    {opcion.region ? `${opcion.region}, ` : ''}{opcion.pais}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {busquedaHecha && resultadosCiudades.length === 0 && (
+                <Text style={styles.sinResultados}>
+                  No se han encontrado ciudades con ese nombre.
+                </Text>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.botonSecundario}
+              onPress={volverAMiUbicacion}
+            >
+              <Text style={styles.botonSecundarioTexto}>📍 Usar mi ubicación actual</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.botonSecundario} onPress={cerrarModalCiudad}>
+              <Text style={styles.botonSecundarioTexto}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -523,6 +654,11 @@ const styles = StyleSheet.create({
     color: COLORES.acento,
     fontSize: 14,
     fontWeight: '600',
+  },
+  textoCambiar: {
+    color: COLORES.textoSecundario,
+    fontSize: 13,
+    fontWeight: '400',
   },
   textoLugares: {
     color: COLORES.verdeTexto,
@@ -746,5 +882,83 @@ const styles = StyleSheet.create({
   },
   botonBorrarTexto: {
     fontSize: 18,
+  },
+  modalFondo: {
+    flex: 1,
+    backgroundColor: 'rgba(41, 37, 36, 0.5)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalTarjeta: {
+    backgroundColor: COLORES.fondo,
+    borderRadius: 18,
+    padding: 22,
+    maxHeight: '80%',
+  },
+  modalTitulo: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORES.textoPrincipal,
+  },
+  modalSubtitulo: {
+    fontSize: 14,
+    color: COLORES.textoSecundario,
+    marginTop: 6,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  filaBusqueda: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  modalInput: {
+    flex: 1,
+    backgroundColor: COLORES.tarjeta,
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    color: COLORES.textoPrincipal,
+  },
+  botonBuscar: {
+    backgroundColor: COLORES.acento,
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    justifyContent: 'center',
+  },
+  botonBuscarTexto: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  listaResultados: {
+    marginTop: 12,
+    maxHeight: 260,
+  },
+  filaResultado: {
+    backgroundColor: COLORES.tarjeta,
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+  },
+  resultadoCiudad: {
+    color: COLORES.textoPrincipal,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  resultadoDetalle: {
+    color: COLORES.textoSecundario,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  sinResultados: {
+    color: COLORES.textoSecundario,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 16,
   },
 });

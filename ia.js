@@ -1,8 +1,7 @@
-// ia.js — Cliente del backend de Planea
-// Ya NO hay ninguna clave aquí: la app llama a nuestro backend en Vercel,
-// y es el backend quien habla con Gemini usando la clave (que vive en el servidor).
+// ia.js — Cliente del backend de Tardeo
+// La app llama a nuestro backend en Vercel; la clave de Gemini vive en el servidor.
 
-// ⬇️ Sustituye esto por la URL que te dé Vercel al desplegar
+// ⬇️ Tu URL de Vercel (la que ya tienes funcionando)
 const BACKEND_URL = 'https://planea-one.vercel.app/api/generar-plan';
 
 export async function generarPlanIA({
@@ -11,6 +10,7 @@ export async function generarPlanIA({
   compania,
   animo,
   ciudad,
+  pais,
   clima,
   lugares,
 }) {
@@ -23,6 +23,7 @@ export async function generarPlanIA({
       compania,
       animo,
       ciudad,
+      pais,
       clima,
       lugares,
     }),
@@ -31,7 +32,6 @@ export async function generarPlanIA({
   const datos = await respuesta.json();
 
   if (!respuesta.ok) {
-    // El backend devuelve mensajes de error legibles para el usuario
     throw new Error(datos.error || `Error del servidor (${respuesta.status})`);
   }
 
