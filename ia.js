@@ -1,7 +1,6 @@
 // ia.js — Cliente del backend de Tardeo
-// La app llama a nuestro backend en Vercel; la clave de Gemini vive en el servidor.
+// Envía las coordenadas y el idioma; el backend obtiene los lugares y responde en ese idioma.
 
-// ⬇️ Tu URL de Vercel (la que ya tienes funcionando)
 const BACKEND_URL = 'https://planea-one.vercel.app/api/generar-plan';
 
 export async function generarPlanIA({
@@ -12,7 +11,10 @@ export async function generarPlanIA({
   ciudad,
   pais,
   clima,
-  lugares,
+  latitud,
+  longitud,
+  idioma,
+  evitar,
 }) {
   const respuesta = await fetch(BACKEND_URL, {
     method: 'POST',
@@ -25,7 +27,10 @@ export async function generarPlanIA({
       ciudad,
       pais,
       clima,
-      lugares,
+      latitud,
+      longitud,
+      idioma,
+      evitar,
     }),
   });
 
@@ -35,5 +40,5 @@ export async function generarPlanIA({
     throw new Error(datos.error || `Error del servidor (${respuesta.status})`);
   }
 
-  return datos; // { titulo, actividades, costeTotal }
+  return datos;
 }

@@ -2,18 +2,13 @@
   "expo": {
     "name": "Tardeo",
     "slug": "tardeo",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FAF7F0"
-    },
     "android": {
       "package": "com.joaquinluisgarcia.tardeo",
-      "versionCode": 1,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#C2410C"
@@ -26,6 +21,24 @@
       "eas": {
         "projectId": "ea9c2347-60d8-43ea-acfa-9a0ca29c73c8"
       }
-    }
+    },
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Tardeo necesita acceso para añadir tus planes a tu calendario."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#C2410C"
+        }
+      ]
+    ]
   }
 }

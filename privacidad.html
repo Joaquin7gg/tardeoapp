@@ -29,7 +29,7 @@
   <h2>1. Información que utiliza la aplicación</h2>
   <p><strong>Ubicación aproximada.</strong> Con tu permiso explícito, la aplicación accede a la ubicación del dispositivo con un único fin: identificar tu ciudad y obtener información de tu entorno (meteorología y lugares de interés cercanos) para generar planes de ocio relevantes. La ubicación se procesa en el momento y <strong>no se almacena</strong> ni en el dispositivo de forma permanente ni en servidores del desarrollador. Si deniegas el permiso, la aplicación sigue funcionando con una ciudad por defecto.</p>
   <p><strong>Preferencias del plan.</strong> Las opciones que seleccionas (tiempo disponible, presupuesto, compañía y tipo de plan), junto con tu ciudad, la información meteorológica y una lista de lugares públicos cercanos, se envían al servidor del desarrollador exclusivamente para generar el plan solicitado. Estos datos no incluyen identificadores personales, no se asocian a tu identidad y no se conservan tras procesar la solicitud.</p>
-  <p><strong>Planes guardados.</strong> Los planes que decidas guardar se almacenan únicamente en la memoria local de tu dispositivo. El desarrollador no tiene acceso a ellos. Se eliminan al desinstalar la aplicación o al borrarlos manualmente.</p>
+  <p><strong>Planes guardados y calendario propio.</strong> Los planes que decidas guardar, así como los planes que añadas al calendario propio de la aplicación, se almacenan únicamente en la memoria local de tu dispositivo. El desarrollador no tiene acceso a ellos. Se eliminan al desinstalar la aplicación o al borrarlos manualmente.</p>
 
   <h2>2. Información que NO se recopila</h2>
   <p>La aplicación no recopila ni trata: nombre, dirección de correo electrónico, número de teléfono, contactos, fotografías, archivos del dispositivo, identificadores publicitarios ni historiales de uso con fines de seguimiento. La aplicación no contiene publicidad ni sistemas de analítica de terceros.</p>
@@ -38,13 +38,16 @@
   <p>Para funcionar, la aplicación se apoya en los siguientes servicios externos, que reciben únicamente los datos imprescindibles para responder a cada solicitud:</p>
   <p>
     <strong>Google Gemini</strong> (generación de los planes; recibe las preferencias del plan y la ciudad, nunca tu posición exacta) — <a href="https://policies.google.com/privacy">política de privacidad</a>.<br>
+    <strong>Google Places</strong> (lugares de interés cercanos; recibe coordenadas aproximadas) — <a href="https://policies.google.com/privacy">política de privacidad</a>.<br>
     <strong>Open-Meteo</strong> (información meteorológica; recibe coordenadas aproximadas) — <a href="https://open-meteo.com/en/terms">términos</a>.<br>
     <strong>OpenStreetMap / Overpass API</strong> (lugares de interés cercanos; recibe coordenadas aproximadas) — <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy">política de privacidad</a>.<br>
     <strong>Vercel</strong> (infraestructura del servidor del desarrollador) — <a href="https://vercel.com/legal/privacy-policy">política de privacidad</a>.
   </p>
 
   <h2>4. Permisos del dispositivo</h2>
-  <p>La aplicación solicita únicamente el permiso de <strong>ubicación</strong> ("mientras se usa la app"). Puedes revocarlo en cualquier momento desde los ajustes del sistema; la aplicación seguirá funcionando con funcionalidad reducida.</p>
+  <p><strong>Ubicación</strong> ("mientras se usa la app"): se utiliza para identificar tu ciudad y tu entorno, tal y como se describe en el apartado 1.</p>
+  <p><strong>Calendario.</strong> La aplicación puede solicitar permiso para acceder al calendario de tu dispositivo con un único fin: añadir a tu calendario los planes que tú decidas guardar. Esta acción solo ocurre cuando pulsas la opción de añadir un plan al calendario del móvil. La aplicación no lee, no recopila ni envía los datos de tu calendario a ningún servidor: el evento se crea directamente en tu dispositivo y los datos permanecen siempre en él.</p>
+  <p>Puedes revocar cualquiera de estos permisos en todo momento desde los ajustes del sistema; la aplicación seguirá funcionando con funcionalidad reducida.</p>
 
   <h2>5. Menores de edad</h2>
   <p>La aplicación no está dirigida a menores de 13 años y no recopila deliberadamente información de menores.</p>
